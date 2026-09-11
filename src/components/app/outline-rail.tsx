@@ -7,16 +7,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-import type { SlideState } from "@/hooks/use-deck-workspace";
+import type { HtmlSlideState } from "@/hooks/use-deck-workspace";
 
 interface OutlineRailProps {
-	states: SlideState[];
+	states: HtmlSlideState[];
 	activeIndex?: number;
 	onSelect: (index: number) => void;
 	onRetry: (index: number) => void;
 }
 
-function StatusIcon({ status }: { status: SlideState["status"] }) {
+function StatusIcon({ status }: { status: HtmlSlideState["status"] }) {
 	if (status === "streaming") {
 		return <Spinner className="size-3.5 shrink-0 text-primary" />;
 	}

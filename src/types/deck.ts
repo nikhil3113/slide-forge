@@ -52,125 +52,6 @@ export const OutlineSchema = z.object({
 });
 export type Outline = z.infer<typeof OutlineSchema>;
 
-const NotesSchema = z.string().default("");
-const KickerSchema = z.string().max(40).default("");
-
-const TitleSlideSchema = z.object({
-	layout: z.literal("title"),
-	title: z.string().min(1),
-	subtitle: z.string().default(""),
-	notes: NotesSchema,
-});
-
-const BulletsSlideSchema = z.object({
-	layout: z.literal("bullets"),
-	kicker: KickerSchema,
-	title: z.string().min(1),
-	bullets: z.array(z.string().min(1)).min(1).max(7),
-	notes: NotesSchema,
-});
-
-const TwoColumnSlideSchema = z.object({
-	layout: z.literal("two-column"),
-	kicker: KickerSchema,
-	title: z.string().min(1),
-	left: z.object({
-		heading: z.string().min(1),
-		bullets: z.array(z.string().min(1)).min(1).max(5),
-	}),
-	right: z.object({
-		heading: z.string().min(1),
-		bullets: z.array(z.string().min(1)).min(1).max(5),
-	}),
-	notes: NotesSchema,
-});
-
-const QuoteSlideSchema = z.object({
-	layout: z.literal("quote"),
-	title: z.string().default(""),
-	quote: z.string().min(1),
-	attribution: z.string().default(""),
-	notes: NotesSchema,
-});
-
-const StatsSlideSchema = z.object({
-	layout: z.literal("stats"),
-	kicker: KickerSchema,
-	title: z.string().min(1),
-	stats: z
-		.array(
-			z.object({
-				value: z.string().min(1),
-				label: z.string().min(1),
-			}),
-		)
-		.min(2)
-		.max(4),
-	notes: NotesSchema,
-});
-
-const TimelineSlideSchema = z.object({
-	layout: z.literal("timeline"),
-	kicker: KickerSchema,
-	title: z.string().min(1),
-	steps: z
-		.array(
-			z.object({
-				title: z.string().min(1),
-				description: z.string().default(""),
-			}),
-		)
-		.min(3)
-		.max(5),
-	notes: NotesSchema,
-});
-
-const SectionSlideSchema = z.object({
-	layout: z.literal("section"),
-	kicker: KickerSchema,
-	title: z.string().min(1),
-	subtitle: z.string().default(""),
-	notes: NotesSchema,
-});
-
-const ImageSplitSlideSchema = z.object({
-	layout: z.literal("image-split"),
-	kicker: KickerSchema,
-	title: z.string().min(1),
-	bullets: z.array(z.string().min(1)).min(2).max(5),
-	caption: z.string().default(""),
-	notes: NotesSchema,
-});
-
-const ClosingSlideSchema = z.object({
-	layout: z.literal("closing"),
-	title: z.string().min(1),
-	subtitle: z.string().default(""),
-	cta: z.string().default(""),
-	notes: NotesSchema,
-});
-
-export const SlideSchema = z.discriminatedUnion("layout", [
-	TitleSlideSchema,
-	BulletsSlideSchema,
-	TwoColumnSlideSchema,
-	QuoteSlideSchema,
-	StatsSlideSchema,
-	TimelineSlideSchema,
-	SectionSlideSchema,
-	ImageSplitSlideSchema,
-	ClosingSlideSchema,
-]);
-export type Slide = z.infer<typeof SlideSchema>;
-
-export const DeckSchema = z.object({
-	title: z.string().min(1),
-	subtitle: z.string().default(""),
-	theme: ThemeIdSchema,
-	slides: z.array(SlideSchema).min(1),
-});
-export type Deck = z.infer<typeof DeckSchema>;
-
 export const ProviderConfigSchema = z.object({
 	provider: ProviderIdSchema,
 	model: z.string().min(1).max(200),
@@ -187,16 +68,10 @@ export const OutlineRequestSchema = ProviderConfigSchema.extend({
 });
 export type OutlineRequest = z.infer<typeof OutlineRequestSchema>;
 
-export const SlideRequestSchema = ProviderConfigSchema.extend({
-	outline: OutlineSchema,
-	index: z.coerce.number().int().min(0),
-	instruction: z.string().max(400).optional(),
-});
-export type SlideRequest = z.infer<typeof SlideRequestSchema>;
-
 export type StreamErrorCode =
 	| "unauthorized"
 	| "invalid_json"
+	| "invalid_html"
 	| "provider_error"
 	| "aborted"
 	| "internal";

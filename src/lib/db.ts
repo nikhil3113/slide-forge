@@ -1,5 +1,6 @@
 import type { WorkspaceMessage } from "@/types/chat";
-import type { Outline, Slide, ThemeId } from "@/types/deck";
+import type { Outline, ThemeId } from "@/types/deck";
+import type { StyleGuide } from "@/types/html";
 
 export interface StoredBrief {
 	slideCount: number;
@@ -14,7 +15,8 @@ export interface StoredDeck {
 	subtitle: string;
 	theme: ThemeId;
 	outline?: Outline;
-	slides: Array<{ index: number; slide: Slide }>;
+	styleGuide?: StyleGuide;
+	slides: Array<{ index: number; html: string; notes: string }>;
 }
 
 export interface StoredWorkspace {

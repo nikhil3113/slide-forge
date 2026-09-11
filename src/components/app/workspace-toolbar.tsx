@@ -15,6 +15,7 @@ import { DownloadButton } from "./download-button";
 
 interface WorkspaceToolbarProps {
 	snapshot: WorkspaceSnapshot;
+	tokensCss: string;
 	progress: DeckWorkspace["progress"];
 	phase: DeckWorkspace["phase"];
 	grid: boolean;
@@ -25,6 +26,7 @@ interface WorkspaceToolbarProps {
 
 export function WorkspaceToolbar({
 	snapshot,
+	tokensCss,
 	progress,
 	phase,
 	grid,
@@ -68,7 +70,9 @@ export function WorkspaceToolbar({
 				>
 					{grid ? <PresentationIcon /> : <LayoutGridIcon />}
 				</Button>
-				{snapshot.outline ? <DownloadButton snapshot={snapshot} /> : null}
+				{snapshot.outline ? (
+					<DownloadButton snapshot={snapshot} tokensCss={tokensCss} />
+				) : null}
 				<Button
 					variant="ghost"
 					size="sm"

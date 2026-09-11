@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PresentationIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ChatPanel } from "@/components/app/chat-panel";
@@ -33,7 +33,8 @@ import {
 	saveSettings,
 	type ProviderSettings,
 } from "@/lib/providers";
-import { DEFAULT_THEME_ID } from "@/lib/themes";
+import { slideTokensCss } from "@/lib/slide-tokens";
+import { DEFAULT_THEME_ID, getTheme } from "@/lib/themes";
 
 function App() {
 	const [settings, setSettings] = useState<ProviderSettings>(() =>
@@ -123,8 +124,19 @@ function App() {
 		takeSnapshot,
 	]);
 
-	const busy = workspace.phase === "outlining" || workspace.phase === "slides";
+	const busy =
+		workspace.phase === "outlining" ||
+		workspace.phase === "style-guide" ||
+		workspace.phase === "slides";
 	const snapshot = takeSnapshot();
+	const tokensCss = useMemo(
+		() =>
+			slideTokensCss(
+				getTheme(workspace.theme),
+				workspace.title || workspace.outline?.title || "SlideForge deck",
+			),
+		[workspace.theme, workspace.title, workspace.outline?.title],
+	);
 	const maxIndex = Math.max(workspace.slideStates.length - 1, 0);
 	const effectiveIndex = Math.min(
 		workspace.activeSlide ?? focusIndex,
@@ -162,14 +174,16 @@ function App() {
 	const statusText =
 		workspace.phase === "outlining"
 			? `Planning the outline… (${workspace.outlineChars} chars)`
-			: workspace.phase === "slides"
-				? `Writing slide ${Math.min(
-						(workspace.activeSlide ?? workspace.progress.done) + 1,
-						workspace.progress.total,
-					)} of ${workspace.progress.total}…`
-				: workspace.phase === "error"
-					? (workspace.error?.message ?? "Something went wrong.")
-					: undefined;
+			: workspace.phase === "style-guide"
+				? "Defining the deck design system…"
+				: workspace.phase === "slides"
+					? `Designing slide ${Math.min(
+							(workspace.activeSlide ?? workspace.progress.done) + 1,
+							workspace.progress.total,
+						)} of ${workspace.progress.total}…`
+					: workspace.phase === "error"
+						? (workspace.error?.message ?? "Something went wrong.")
+						: undefined;
 
 	return (
 		<TooltipProvider>
@@ -191,6 +205,7 @@ function App() {
 					<section className="flex min-h-0 min-w-0 flex-1 flex-col">
 						<WorkspaceToolbar
 							snapshot={snapshot}
+							tokensCss={tokensCss}
 							progress={workspace.progress}
 							phase={workspace.phase}
 							grid={grid}
@@ -218,13 +233,13 @@ function App() {
 							) : grid ? (
 								<SlideGrid
 									slides={workspace.slideStates}
-									themeId={workspace.theme}
+									tokensCss={tokensCss}
 									onRetry={(index) => void workspace.retrySlide(index)}
 								/>
 							) : (
 								<SlideStage
 									state={currentState}
-									themeId={workspace.theme}
+									tokensCss={tokensCss}
 									index={effectiveIndex}
 									total={workspace.slideStates.length}
 									onPrev={() =>

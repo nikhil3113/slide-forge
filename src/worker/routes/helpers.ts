@@ -2,9 +2,14 @@ import type { Context } from "hono";
 import type { SSEStreamingApi } from "hono/streaming";
 import type { StreamError } from "@/types/deck";
 import { ProviderError } from "@/worker/providers/types";
+import { HtmlValidationError } from "@/worker/utils/html";
 import { JsonValidationError } from "@/worker/utils/json";
 
 export function toStreamError(error: unknown): StreamError {
+	if (error instanceof HtmlValidationError) {
+		return { message: error.message, code: "invalid_html" };
+	}
+
 	if (error instanceof JsonValidationError) {
 		return { message: error.message, code: "invalid_json" };
 	}

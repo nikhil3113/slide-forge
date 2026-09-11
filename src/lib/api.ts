@@ -1,11 +1,15 @@
 import {
 	OutlineSchema,
-	SlideSchema,
 	type Outline,
-	type Slide,
-	type StreamError,
 	type ThemeId,
 } from "@/types/deck";
+import {
+	SlideHtmlResultSchema,
+	StyleGuideSchema,
+	type SlideHtmlResult,
+	type StyleGuide,
+} from "@/types/html";
+import type { StreamError } from "@/types/deck";
 import {
 	activeBaseUrl,
 	activeKey,
@@ -24,24 +28,6 @@ export class StreamRequestError extends Error {
 		this.name = "StreamRequestError";
 		this.code = error.code;
 	}
-}
-
-export interface StreamOptions {
-	onDelta?: (text: string) => void;
-	signal?: AbortSignal;
-}
-
-export interface OutlineInput {
-	topic: string;
-	slideCount: number;
-	theme: ThemeId;
-	audience?: string;
-	tone?: string;
-}
-
-export interface SlideInput {
-	outline: Outline;
-	index: number;
 }
 
 export function buildHeaders(
@@ -64,6 +50,27 @@ export function providerConfig(settings: ProviderSettings) {
 		model: activeModel(settings),
 		...(baseUrl ? { baseUrl } : {}),
 	};
+}
+
+export interface OutlineInput {
+	topic: string;
+	slideCount: number;
+	theme: ThemeId;
+	audience?: string;
+	tone?: string;
+}
+
+export interface SlideHtmlInput {
+	outline: Outline;
+	index: number;
+	styleGuide: StyleGuide;
+	instruction?: string;
+	previousHtml?: string;
+}
+
+export interface StreamOptions {
+	onDelta?: (text: string) => void;
+	signal?: AbortSignal;
 }
 
 export function generateOutline(
@@ -104,30 +111,64 @@ export function generateOutline(
 	});
 }
 
-export function generateSlide(
-	input: SlideInput,
+export function generateStyleGuide(
+	outline: Outline,
 	settings: ProviderSettings,
 	options: StreamOptions = {},
-): Promise<Slide> {
+): Promise<StyleGuide> {
 	return new Promise((resolve, reject) => {
 		postSSE(
-			"/api/slide",
+			"/api/style-guide",
+			{ ...providerConfig(settings), outline },
+			buildHeaders(settings),
+			{
+				onDelta: options.onDelta,
+				onResult: (data) => {
+					try {
+						resolve(StyleGuideSchema.parse(data));
+					} catch {
+						reject(
+							new StreamRequestError({
+								message: "The server returned an unreadable style guide.",
+								code: "invalid_json",
+							}),
+						);
+					}
+				},
+				onError: (error) => reject(new StreamRequestError(error)),
+				signal: options.signal,
+			},
+		).catch(reject);
+	});
+}
+
+export function generateSlideHtml(
+	input: SlideHtmlInput,
+	settings: ProviderSettings,
+	options: StreamOptions = {},
+): Promise<SlideHtmlResult> {
+	return new Promise((resolve, reject) => {
+		postSSE(
+			"/api/slide-html",
 			{
 				...providerConfig(settings),
 				outline: input.outline,
 				index: input.index,
+				styleGuide: input.styleGuide,
+				...(input.instruction ? { instruction: input.instruction } : {}),
+				...(input.previousHtml ? { previousHtml: input.previousHtml } : {}),
 			},
 			buildHeaders(settings),
 			{
 				onDelta: options.onDelta,
 				onResult: (data) => {
 					try {
-						resolve(SlideSchema.parse(data));
+						resolve(SlideHtmlResultSchema.parse(data));
 					} catch {
 						reject(
 							new StreamRequestError({
 								message: "The server returned an unreadable slide.",
-								code: "invalid_json",
+								code: "invalid_html",
 							}),
 						);
 					}
