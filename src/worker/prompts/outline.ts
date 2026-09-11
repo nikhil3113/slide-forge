@@ -29,8 +29,15 @@ Layout rules:
 - "image-split": a concept slide that pairs 2-5 concise points with a strong visual panel.
 - For decks longer than 6 slides, use at least four different layouts besides "title" and "closing".
 - Match the layout to the content: use "timeline" only when the content really is sequential.
-- Slide titles are short, specific, and never repeat the deck title verbatim.
-- The "summary" guides a later model that writes the full slide, so describe the actual content, not generic filler.`;
+- Slide titles are short, specific, and state the slide's actual claim. Never use generic filler titles such as "The Vision", "Why It Matters", "Introduction", "Overview", "Traction That Speaks", "Key Takeaways", or "The Future of X".
+- Each "summary" must state a concrete claim or fact the slide will make, not just name its topic.
+- Never invent quotes, people, companies, or analyst sources. If a quote is planned, phrase it generically and leave it unattributed.
+- Prefer specific nouns, numbers, and named concepts over adjectives.
+
+Style rules (strict):
+- Banned words/phrases: cutting-edge, seamless, robust, leverage, unlock, empower, game-changing, revolutionary, world-class, best-in-class, state-of-the-art, "in today's", "the future of", "one-stop", "end-to-end solution".
+- No three-item lists where two concrete points would do; no empty parallelism ("not just X, but Y").
+- Write like a sharp analyst, not a brochure.`;
 
 export function buildOutlinePrompt(request: OutlineRequest): {
 	system: string;

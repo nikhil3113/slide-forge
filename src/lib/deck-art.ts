@@ -18,8 +18,8 @@ export type IconName =
 	| "star"
 	| "growth";
 
-const ART_WIDTH = 1920;
-const ART_HEIGHT = 1080;
+const ART_WIDTH = 1600;
+const ART_HEIGHT = 900;
 const cache = new Map<string, string>();
 
 export function artAvailable(): boolean {
@@ -72,10 +72,9 @@ function drawBase(
 	width: number,
 	height: number,
 ): void {
-	const gradient = ctx.createLinearGradient(0, 0, width * 0.9, height);
+	const gradient = ctx.createLinearGradient(0, 0, width, height);
 	gradient.addColorStop(0, `#${theme.gradient[0]}`);
-	gradient.addColorStop(0.55, `#${theme.gradient[1]}`);
-	gradient.addColorStop(1, `#${theme.gradient[0]}`);
+	gradient.addColorStop(1, `#${theme.gradient[1]}`);
 	ctx.fillStyle = gradient;
 	ctx.fillRect(0, 0, width, height);
 }
@@ -116,7 +115,7 @@ function getNoisePattern(
 		image.data[index] = value;
 		image.data[index + 1] = value;
 		image.data[index + 2] = value;
-		image.data[index + 3] = 16;
+		image.data[index + 3] = 10;
 	}
 	tileCtx.putImageData(image, 0, 0);
 
@@ -132,7 +131,7 @@ function drawGrain(
 	const pattern = getNoisePattern(ctx);
 	if (!pattern) return;
 	ctx.save();
-	ctx.globalAlpha = 0.5;
+	ctx.globalAlpha = 0.4;
 	ctx.fillStyle = pattern;
 	ctx.fillRect(0, 0, width, height);
 	ctx.restore();
@@ -147,23 +146,23 @@ function drawVignette(
 	const gradient = ctx.createRadialGradient(
 		width / 2,
 		height / 2,
-		Math.min(width, height) * 0.35,
+		Math.min(width, height) * 0.4,
 		width / 2,
 		height / 2,
-		Math.max(width, height) * 0.78,
+		Math.max(width, height) * 0.8,
 	);
 	if (theme.mode === "dark") {
 		gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-		gradient.addColorStop(1, "rgba(0, 0, 0, 0.5)");
+		gradient.addColorStop(1, "rgba(0, 0, 0, 0.32)");
 	} else {
 		gradient.addColorStop(0, "rgba(255, 255, 255, 0)");
-		gradient.addColorStop(1, "rgba(40, 30, 20, 0.12)");
+		gradient.addColorStop(1, "rgba(40, 30, 20, 0.06)");
 	}
 	ctx.fillStyle = gradient;
 	ctx.fillRect(0, 0, width, height);
 }
 
-function drawGlow(
+function drawField(
 	ctx: CanvasRenderingContext2D,
 	theme: DeckTheme,
 	width: number,
@@ -172,48 +171,12 @@ function drawGlow(
 ): void {
 	drawBlob(
 		ctx,
-		width * (0.65 + random() * 0.25),
-		height * (0.1 + random() * 0.3),
-		width * 0.55,
-		theme.accent,
-		0.32,
-	);
-	drawBlob(
-		ctx,
-		width * (0.05 + random() * 0.25),
-		height * (0.65 + random() * 0.25),
+		width * (0.85 + random() * 0.1),
+		height * (0.02 + random() * 0.12),
 		width * 0.5,
-		theme.accent2,
-		0.22,
+		theme.accent,
+		theme.mode === "dark" ? 0.1 : 0.06,
 	);
-	drawBlob(
-		ctx,
-		width * (0.3 + random() * 0.4),
-		height * (0.4 + random() * 0.3),
-		width * 0.32,
-		theme.gradient[1],
-		0.3,
-	);
-}
-
-function drawMesh(
-	ctx: CanvasRenderingContext2D,
-	theme: DeckTheme,
-	width: number,
-	height: number,
-	random: () => number,
-): void {
-	const colors = [theme.accent, theme.accent2, theme.gradient[1]];
-	for (let index = 0; index < 4; index += 1) {
-		drawBlob(
-			ctx,
-			width * (0.15 + random() * 0.7),
-			height * (0.15 + random() * 0.7),
-			width * (0.28 + random() * 0.18),
-			colors[index % colors.length],
-			0.26,
-		);
-	}
 }
 
 function drawGrid(
@@ -221,11 +184,12 @@ function drawGrid(
 	theme: DeckTheme,
 	width: number,
 	height: number,
-	random: () => number,
 ): void {
-	const spacing = 64;
+	const spacing = 80;
+	const lineColor = theme.mode === "dark" ? "#FFFFFF" : "#000000";
+
 	ctx.save();
-	ctx.strokeStyle = rgba(theme.accent, 0.08);
+	ctx.strokeStyle = rgba(lineColor, 0.045);
 	ctx.lineWidth = 1;
 	ctx.beginPath();
 	for (let x = spacing; x < width; x += spacing) {
@@ -239,55 +203,63 @@ function drawGrid(
 	ctx.stroke();
 	ctx.restore();
 
-	drawBlob(
-		ctx,
-		width * (0.5 + random() * 0.4),
-		height * (0.2 + random() * 0.4),
-		width * 0.45,
-		theme.accent,
-		0.22,
-	);
+	ctx.fillStyle = rgba(theme.accent, theme.mode === "dark" ? 0.14 : 0.1);
+	ctx.fillRect(spacing * 3, spacing * 3, spacing, spacing);
+	drawBlob(ctx, width * 0.92, 0, width * 0.4, theme.accent2, 0.07);
 }
 
-function drawWaves(
+function drawArc(
 	ctx: CanvasRenderingContext2D,
 	theme: DeckTheme,
 	width: number,
 	height: number,
-	random: () => number,
 ): void {
-	for (let band = 0; band < 3; band += 1) {
-		const baseY = height * (0.45 + band * 0.16 + random() * 0.05);
-		const amplitude = height * (0.05 + random() * 0.04);
-		ctx.beginPath();
-		ctx.moveTo(0, baseY);
-		ctx.bezierCurveTo(
-			width * 0.25,
-			baseY - amplitude,
-			width * 0.5,
-			baseY + amplitude,
-			width * 0.75,
-			baseY - amplitude * 0.5,
-		);
-		ctx.bezierCurveTo(
-			width * 0.88,
-			baseY - amplitude * 0.9,
-			width * 0.95,
-			baseY + amplitude * 0.4,
-			width,
-			baseY,
-		);
-		ctx.lineTo(width, height);
-		ctx.lineTo(0, height);
-		ctx.closePath();
+	const centerX = width * 0.86;
+	const centerY = height * 0.18;
+	const radius = width * 0.42;
 
-		const gradient = ctx.createLinearGradient(0, baseY, width, height);
-		const color = band % 2 === 0 ? theme.accent : theme.accent2;
-		gradient.addColorStop(0, rgba(color, 0.16));
-		gradient.addColorStop(1, rgba(color, 0));
-		ctx.fillStyle = gradient;
-		ctx.fill();
+	drawBlob(
+		ctx,
+		centerX,
+		centerY,
+		radius * 1.15,
+		theme.accent,
+		theme.mode === "dark" ? 0.13 : 0.08,
+	);
+
+	ctx.save();
+	ctx.strokeStyle = rgba(theme.accent, theme.mode === "dark" ? 0.18 : 0.14);
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+	ctx.stroke();
+
+	ctx.strokeStyle = rgba(theme.accent2, 0.1);
+	ctx.beginPath();
+	ctx.arc(centerX, centerY, radius * 0.7, 0, Math.PI * 2);
+	ctx.stroke();
+	ctx.restore();
+}
+
+function drawBands(
+	ctx: CanvasRenderingContext2D,
+	theme: DeckTheme,
+	width: number,
+	height: number,
+): void {
+	for (let index = 0; index < 4; index += 1) {
+		const y = height * (0.14 + index * 0.21);
+		const bandHeight = height * (0.045 + (index % 2) * 0.025);
+		ctx.fillStyle = rgba(
+			index % 2 === 0 ? theme.accent : theme.accent2,
+			theme.mode === "dark" ? 0.05 : 0.04,
+		);
+		ctx.fillRect(0, y, width, bandHeight);
 	}
+
+	ctx.fillStyle = rgba(theme.accent, 0.55);
+	ctx.fillRect(width * 0.08, height * 0.14, width * 0.02, 3);
+	drawBlob(ctx, width * 0.15, height * 0.9, width * 0.35, theme.accent2, 0.06);
 }
 
 function drawTopo(
@@ -297,15 +269,18 @@ function drawTopo(
 	height: number,
 	random: () => number,
 ): void {
-	const centerX = width * (0.2 + random() * 0.6);
-	const centerY = height * (0.2 + random() * 0.6);
+	const centerX = width * (0.25 + random() * 0.5);
+	const centerY = height * (0.25 + random() * 0.5);
 	const phase = random() * Math.PI * 2;
 
 	ctx.save();
-	ctx.strokeStyle = rgba(theme.accent, 0.1);
-	ctx.lineWidth = 1.5;
-	for (let ring = 1; ring <= 14; ring += 1) {
-		const baseRadius = ring * 52;
+	ctx.strokeStyle = rgba(
+		theme.mode === "dark" ? theme.accent : theme.text,
+		0.06,
+	);
+	ctx.lineWidth = 1.4;
+	for (let ring = 1; ring <= 10; ring += 1) {
+		const baseRadius = ring * 68;
 		ctx.beginPath();
 		for (let angle = 0; angle <= Math.PI * 2 + 0.05; angle += 0.12) {
 			const wobble =
@@ -321,7 +296,7 @@ function drawTopo(
 	}
 	ctx.restore();
 
-	drawBlob(ctx, centerX, centerY, width * 0.4, theme.accent2, 0.16);
+	drawBlob(ctx, centerX, centerY, width * 0.35, theme.accent2, 0.06);
 }
 
 function drawDots(
@@ -331,21 +306,23 @@ function drawDots(
 	height: number,
 	random: () => number,
 ): void {
-	const focusX = width * (0.55 + random() * 0.35);
-	const focusY = height * (0.2 + random() * 0.4);
-	const spacing = 42;
+	const focusX = width * (0.65 + random() * 0.25);
+	const focusY = height * (0.12 + random() * 0.25);
+	const spacing = 54;
 
 	for (let x = spacing / 2; x < width; x += spacing) {
 		for (let y = spacing / 2; y < height; y += spacing) {
 			const distance = Math.hypot(x - focusX, y - focusY);
-			const strength = Math.max(0, 1 - distance / 900);
+			const strength = Math.max(0, 1 - distance / 1000);
 			if (strength <= 0) continue;
 			ctx.beginPath();
-			ctx.fillStyle = rgba(theme.accent, 0.05 + strength * 0.35);
-			ctx.arc(x, y, 1.2 + strength * 2.6, 0, Math.PI * 2);
+			ctx.fillStyle = rgba(theme.accent, 0.03 + strength * 0.15);
+			ctx.arc(x, y, 1 + strength * 1.8, 0, Math.PI * 2);
 			ctx.fill();
 		}
 	}
+
+	drawBlob(ctx, focusX, focusY, width * 0.3, theme.accent2, 0.07);
 }
 
 function drawMotif(
@@ -357,17 +334,17 @@ function drawMotif(
 	random: () => number,
 ): void {
 	switch (motif) {
-		case "glow":
-			drawGlow(ctx, theme, width, height, random);
-			break;
-		case "mesh":
-			drawMesh(ctx, theme, width, height, random);
+		case "field":
+			drawField(ctx, theme, width, height, random);
 			break;
 		case "grid":
-			drawGrid(ctx, theme, width, height, random);
+			drawGrid(ctx, theme, width, height);
 			break;
-		case "waves":
-			drawWaves(ctx, theme, width, height, random);
+		case "arc":
+			drawArc(ctx, theme, width, height);
+			break;
+		case "bands":
+			drawBands(ctx, theme, width, height);
 			break;
 		case "topo":
 			drawTopo(ctx, theme, width, height, random);
@@ -399,58 +376,9 @@ export function renderBackground(
 	drawVignette(ctx, theme, ART_WIDTH, ART_HEIGHT);
 	drawGrain(ctx, ART_WIDTH, ART_HEIGHT);
 
-	const data = canvas.toDataURL("image/jpeg", 0.86);
+	const data = canvas.toDataURL("image/jpeg", 0.85);
 	cache.set(key, data);
 	return data;
-}
-
-export function renderPanelArt(
-	themeId: ThemeId,
-	variant: number,
-): string | undefined {
-	const key = `panel:${themeId}:${variant}`;
-	const cached = cache.get(key);
-	if (cached) return cached;
-
-	const surface = createCanvas(1200, 780);
-	if (!surface) return undefined;
-
-	const { canvas, ctx } = surface;
-	const theme = getTheme(themeId);
-	const random = makeRandom(hashString(key));
-
-	ctx.beginPath();
-	roundRectPath(ctx, 0, 0, 1200, 780, 44);
-	ctx.clip();
-
-	drawBase(ctx, theme, 1200, 780);
-	drawMotif(ctx, theme, theme.motifs[0], 1200, 780, random);
-	drawGrain(ctx, 1200, 780);
-
-	const data = canvas.toDataURL("image/png");
-	cache.set(key, data);
-	return data;
-}
-
-function roundRectPath(
-	ctx: CanvasRenderingContext2D,
-	x: number,
-	y: number,
-	width: number,
-	height: number,
-	radius: number,
-): void {
-	const r = Math.min(radius, width / 2, height / 2);
-	ctx.moveTo(x + r, y);
-	ctx.lineTo(x + width - r, y);
-	ctx.quadraticCurveTo(x + width, y, x + width, y + r);
-	ctx.lineTo(x + width, y + height - r);
-	ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-	ctx.lineTo(x + r, y + height);
-	ctx.quadraticCurveTo(x, y + height, x, y + height - r);
-	ctx.lineTo(x, y + r);
-	ctx.quadraticCurveTo(x, y, x + r, y);
-	ctx.closePath();
 }
 
 type Point = [number, number];

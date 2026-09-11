@@ -44,8 +44,11 @@ export function SlideStage({
 		<div className="flex min-h-0 flex-1 flex-col gap-3">
 			<AspectRatio
 				ratio={16 / 9}
-				className="relative w-full max-w-[1100px] self-center overflow-hidden rounded-2xl border border-border shadow-lg"
-				style={{ backgroundImage: cssBackground(theme) }}
+				className="relative w-full self-center overflow-hidden rounded-2xl border border-border shadow-lg"
+				style={{
+					backgroundImage: cssBackground(theme),
+					maxWidth: "min(1100px, calc((100svh - 21rem) * 16 / 9))",
+				}}
 			>
 				{state ? (
 					previewData ? (

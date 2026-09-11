@@ -1,5 +1,9 @@
-import { cssBackground, getTheme, toCssColor } from "@/lib/themes";
+import { useEffect, useRef, useState } from "react";
+import { getTheme, toCssColor } from "@/lib/themes";
 import type { Layout, ThemeId } from "@/types/deck";
+
+const DESIGN_WIDTH = 360;
+const DESIGN_HEIGHT = 202.5;
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
 	return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -50,6 +54,38 @@ interface SlidePreviewProps {
 }
 
 export function SlidePreview({ layout, data, themeId }: SlidePreviewProps) {
+	const containerRef = useRef<HTMLDivElement>(null);
+	const [scale, setScale] = useState(0.3);
+
+	useEffect(() => {
+		const element = containerRef.current;
+		if (!element) return;
+		const observer = new ResizeObserver((entries) => {
+			const width = entries[0]?.contentRect.width ?? 0;
+			if (width > 0) setScale(width / DESIGN_WIDTH);
+		});
+		observer.observe(element);
+		return () => observer.disconnect();
+	}, []);
+
+	return (
+		<div ref={containerRef} className="absolute inset-0">
+			<div
+				className="absolute left-0 top-0"
+				style={{
+					width: DESIGN_WIDTH,
+					height: DESIGN_HEIGHT,
+					transform: `scale(${scale})`,
+					transformOrigin: "top left",
+				}}
+			>
+				<SlidePreviewLayout layout={layout} data={data} themeId={themeId} />
+			</div>
+		</div>
+	);
+}
+
+function SlidePreviewLayout({ layout, data, themeId }: SlidePreviewProps) {
 	const theme = getTheme(themeId);
 	const text = toCssColor(theme.text);
 	const muted = toCssColor(theme.mutedText);
@@ -125,10 +161,6 @@ export function SlidePreview({ layout, data, themeId }: SlidePreviewProps) {
 								<span className="text-[9px] leading-tight" style={{ color: muted }}>
 									{asString(stat?.label) ?? ""}
 								</span>
-								<span
-									className="mt-1 h-1 w-4/5 self-center rounded-full"
-									style={{ backgroundColor: accent, opacity: 0.6 }}
-								/>
 							</div>
 						))
 					)}
@@ -225,8 +257,11 @@ export function SlidePreview({ layout, data, themeId }: SlidePreviewProps) {
 					/>
 				</div>
 				<div
-					className="relative flex items-center justify-center overflow-hidden rounded-xl"
-					style={{ backgroundImage: cssBackground(theme) }}
+					className="relative flex items-center justify-center overflow-hidden rounded-xl border"
+					style={{
+						backgroundColor: toCssColor(theme.surface),
+						borderColor: toCssColor(theme.border),
+					}}
 				>
 					<span
 						className="size-10 rounded-full border-2"
