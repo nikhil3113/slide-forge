@@ -44,6 +44,7 @@
 		"dev": "vite",
 		"lint": "eslint .",
 		"preview": "bun run build && vite preview",
+		"smoke": "bun run scripts/smoke.ts",
 		"typecheck": "tsc -b"
 	},
 	"type": "module"
