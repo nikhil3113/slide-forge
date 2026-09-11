@@ -5,9 +5,10 @@ import { anthropicProvider } from "./anthropic";
 import { ProviderError, type Provider } from "./types";
 
 const OPENAI_COMPAT_BASE_URLS: Record<string, string> = {
+	"opencode-go": "https://opencode.ai/zen/go/v1",
+	"opencode-zen": "https://opencode.ai/zen/v1",
 	openai: "https://api.openai.com/v1",
 	groq: "https://api.groq.com/openai/v1",
-	"opencode-zen": "https://opencode.ai/zen/v1",
 };
 
 export interface ProviderSelection {

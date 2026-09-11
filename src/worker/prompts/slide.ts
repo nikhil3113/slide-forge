@@ -14,7 +14,7 @@ You always respond with one valid JSON object and nothing else: no markdown fenc
 
 Content rules:
 - Bullets are short phrases (max 12 words), parallel in structure, and information-dense.
-- "notes" are speaker notes: 2-4 conversational sentences that add context, examples, or transitions. Never repeat the slide text verbatim.
+- "notes" are speaker notes and are required: 2-4 conversational sentences (about 40-90 words) that add context, examples, or transitions the presenter can say out loud. Never repeat the slide text verbatim and never leave notes empty.
 - Match the requested layout exactly and follow its JSON shape.
 - Never invent a different layout field value.`;
 

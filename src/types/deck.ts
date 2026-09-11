@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const ProviderIdSchema = z.enum([
+	"opencode-go",
 	"opencode-zen",
 	"openai",
 	"groq",
