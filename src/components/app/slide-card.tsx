@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { useSlideThumbnail } from "@/lib/slide-thumbnails";
 import { cn } from "@/lib/utils";
 import type { HtmlSlideState } from "@/hooks/use-deck-workspace";
 import { SlideCanvas } from "./slide-canvas";
@@ -10,22 +11,50 @@ import { SlideCanvas } from "./slide-canvas";
 interface SlideCardProps {
 	state: HtmlSlideState;
 	tokensCss: string;
+	backgroundColor: string;
 	onRetry: (index: number) => void;
 }
 
-export function SlideCard({ state, tokensCss, onRetry }: SlideCardProps) {
-	const source =
-		state.status === "streaming" && state.partialHtml
-			? state.partialHtml
-			: (state.html ?? state.partialHtml);
+export function SlideCard({
+	state,
+	tokensCss,
+	backgroundColor,
+	onRetry,
+}: SlideCardProps) {
+	const thumbnail = useSlideThumbnail({
+		html: state.html,
+		tokensCss,
+		backgroundColor,
+	});
+
+	const streaming =
+		state.status === "streaming" || (!state.html && !!state.partialHtml);
+	const liveSource = streaming
+		? state.partialHtml
+		: thumbnail.status === "error"
+			? (state.html ?? state.partialHtml)
+			: undefined;
+	const imageUrl =
+		!streaming && thumbnail.status === "ready" ? thumbnail.url : undefined;
+	const preparing =
+		!!state.html && !streaming && thumbnail.status === "rendering";
 
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="relative aspect-video overflow-hidden rounded-xl border border-border shadow-sm">
-				{source ? (
-					<SlideCanvas source={source} tokensCss={tokensCss} />
+				{imageUrl ? (
+					<img
+						src={imageUrl}
+						alt={state.outline.title}
+						className="h-full w-full object-cover"
+					/>
+				) : liveSource ? (
+					<SlideCanvas source={liveSource} tokensCss={tokensCss} />
 				) : (
-					<div className="flex h-full flex-col justify-center gap-3 p-6">
+					<div className="flex h-full flex-col items-center justify-center gap-3 p-6">
+						{preparing ? (
+							<Spinner className="size-4 text-muted-foreground" />
+						) : null}
 						<Skeleton className="h-4 w-2/3 bg-foreground/10" />
 						<Skeleton className="h-3 w-full bg-foreground/10" />
 						<Skeleton className="h-3 w-5/6 bg-foreground/10" />

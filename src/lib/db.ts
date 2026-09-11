@@ -28,9 +28,10 @@ export interface StoredWorkspace {
 }
 
 const DB_NAME = "pptgen";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const WORKSPACE_STORE = "workspaces";
 const META_STORE = "meta";
+const THUMBNAIL_STORE = "thumbnails";
 const ACTIVE_KEY = "activeWorkspaceId";
 
 function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
@@ -57,6 +58,9 @@ function openDatabase(): Promise<IDBDatabase | undefined> {
 				}
 				if (!db.objectStoreNames.contains(META_STORE)) {
 					db.createObjectStore(META_STORE, { keyPath: "key" });
+				}
+				if (!db.objectStoreNames.contains(THUMBNAIL_STORE)) {
+					db.createObjectStore(THUMBNAIL_STORE, { keyPath: "key" });
 				}
 			};
 			request.onsuccess = () => resolve(request.result);
@@ -107,9 +111,61 @@ export async function clearWorkspace(): Promise<void> {
 	const db = await openDatabase();
 	if (!db) return;
 	try {
-		const tx = db.transaction([WORKSPACE_STORE, META_STORE], "readwrite");
+		const tx = db.transaction(
+			[WORKSPACE_STORE, META_STORE, THUMBNAIL_STORE],
+			"readwrite",
+		);
 		tx.objectStore(WORKSPACE_STORE).clear();
 		tx.objectStore(META_STORE).clear();
+		tx.objectStore(THUMBNAIL_STORE).clear();
+	} catch {
+		// ignore
+	}
+}
+
+interface StoredThumbnail {
+	key: string;
+	url: string;
+	updatedAt: number;
+}
+
+export async function getStoredThumbnail(
+	key: string,
+): Promise<string | undefined> {
+	const db = await openDatabase();
+	if (!db) return undefined;
+	try {
+		const tx = db.transaction(THUMBNAIL_STORE, "readonly");
+		const record = await requestToPromise<StoredThumbnail | undefined>(
+			tx.objectStore(THUMBNAIL_STORE).get(key),
+		);
+		return record?.url;
+	} catch {
+		return undefined;
+	}
+}
+
+const THUMBNAIL_LIMIT = 120;
+
+export async function putStoredThumbnail(
+	key: string,
+	url: string,
+): Promise<void> {
+	const db = await openDatabase();
+	if (!db) return;
+	try {
+		const tx = db.transaction(THUMBNAIL_STORE, "readwrite");
+		const store = tx.objectStore(THUMBNAIL_STORE);
+		const records = await requestToPromise<StoredThumbnail[]>(
+			store.getAll() as IDBRequest<StoredThumbnail[]>,
+		);
+		if (records.length >= THUMBNAIL_LIMIT) {
+			records
+				.sort((a, b) => a.updatedAt - b.updatedAt)
+				.slice(0, records.length - THUMBNAIL_LIMIT + 1)
+				.forEach((record) => store.delete(record.key));
+		}
+		store.put({ key, url, updatedAt: Date.now() });
 	} catch {
 		// ignore
 	}

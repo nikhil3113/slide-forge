@@ -4,10 +4,16 @@ import type { HtmlSlideState } from "@/hooks/use-deck-workspace";
 interface SlideGridProps {
 	slides: HtmlSlideState[];
 	tokensCss: string;
+	backgroundColor: string;
 	onRetry: (index: number) => void;
 }
 
-export function SlideGrid({ slides, tokensCss, onRetry }: SlideGridProps) {
+export function SlideGrid({
+	slides,
+	tokensCss,
+	backgroundColor,
+	onRetry,
+}: SlideGridProps) {
 	return (
 		<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 			{slides.map((slide) => (
@@ -15,6 +21,7 @@ export function SlideGrid({ slides, tokensCss, onRetry }: SlideGridProps) {
 					key={slide.index}
 					state={slide}
 					tokensCss={tokensCss}
+					backgroundColor={backgroundColor}
 					onRetry={onRetry}
 				/>
 			))}

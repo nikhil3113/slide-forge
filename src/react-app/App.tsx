@@ -137,6 +137,7 @@ function App() {
 			),
 		[workspace.theme, workspace.title, workspace.outline?.title],
 	);
+	const slideBackground = `#${getTheme(workspace.theme).background}`;
 	const maxIndex = Math.max(workspace.slideStates.length - 1, 0);
 	const effectiveIndex = Math.min(
 		workspace.activeSlide ?? focusIndex,
@@ -234,6 +235,7 @@ function App() {
 								<SlideGrid
 									slides={workspace.slideStates}
 									tokensCss={tokensCss}
+									backgroundColor={slideBackground}
 									onRetry={(index) => void workspace.retrySlide(index)}
 								/>
 							) : (
