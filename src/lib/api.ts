@@ -44,7 +44,9 @@ export interface SlideInput {
 	index: number;
 }
 
-function buildHeaders(settings: ProviderSettings): Record<string, string> {
+export function buildHeaders(
+	settings: ProviderSettings,
+): Record<string, string> {
 	const preset = getProviderPreset(settings.providerId);
 	const headers: Record<string, string> = {
 		"x-llm-key": activeKey(settings),
@@ -55,7 +57,7 @@ function buildHeaders(settings: ProviderSettings): Record<string, string> {
 	return headers;
 }
 
-function providerConfig(settings: ProviderSettings) {
+export function providerConfig(settings: ProviderSettings) {
 	const baseUrl = activeBaseUrl(settings);
 	return {
 		provider: settings.providerId,

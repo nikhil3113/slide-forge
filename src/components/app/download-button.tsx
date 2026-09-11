@@ -4,29 +4,32 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { downloadDeck } from "@/lib/build-deck";
-import type { SlideState } from "@/hooks/use-deck-generation";
-import type { Deck, Outline } from "@/types/deck";
+import type { WorkspaceSnapshot } from "@/hooks/use-deck-workspace";
+import type { Deck } from "@/types/deck";
 
 interface DownloadButtonProps {
-	outline: Outline;
-	slides: SlideState[];
+	snapshot: WorkspaceSnapshot;
 }
 
-export function DownloadButton({ outline, slides }: DownloadButtonProps) {
+export function DownloadButton({ snapshot }: DownloadButtonProps) {
 	const [building, setBuilding] = useState(false);
 
 	const ready =
-		slides.length > 0 && slides.every((slide) => slide.status === "done");
+		!!snapshot.outline &&
+		snapshot.slides.length === snapshot.outline.slides.length &&
+		snapshot.slides.length > 0;
 
 	const handleDownload = async () => {
 		if (!ready || building) return;
 		setBuilding(true);
 		try {
 			const deck: Deck = {
-				title: outline.title,
-				subtitle: outline.subtitle,
-				theme: outline.theme,
-				slides: slides.map((slide) => slide.slide!),
+				title: snapshot.title || snapshot.outline?.title || "SlideForge deck",
+				subtitle: snapshot.subtitle,
+				theme: snapshot.theme,
+				slides: snapshot.slides
+					.sort((a, b) => a.index - b.index)
+					.map((entry) => entry.slide),
 			};
 			const fileName = await downloadDeck(deck);
 			toast.success("PowerPoint downloaded", { description: fileName });
@@ -42,12 +45,13 @@ export function DownloadButton({ outline, slides }: DownloadButtonProps) {
 
 	return (
 		<Button
-			className="w-full"
+			size="sm"
 			disabled={!ready || building}
 			onClick={() => void handleDownload()}
+			title={ready ? "Download .pptx" : "Generate all slides first"}
 		>
 			{building ? <Spinner /> : <DownloadIcon />}
-			{building ? "Building .pptx..." : "Download .pptx"}
+			{building ? "Building…" : "Download"}
 		</Button>
 	);
 }

@@ -11,7 +11,15 @@ export const ProviderIdSchema = z.enum([
 ]);
 export type ProviderId = z.infer<typeof ProviderIdSchema>;
 
-export const THEME_IDS = ["midnight", "paper", "ocean", "sunset", "forest"] as const;
+export const THEME_IDS = [
+	"midnight",
+	"paper",
+	"ocean",
+	"sunset",
+	"forest",
+	"nebula",
+	"linen",
+] as const;
 export const ThemeIdSchema = z.enum(THEME_IDS);
 export type ThemeId = z.infer<typeof ThemeIdSchema>;
 
@@ -21,6 +29,9 @@ export const LAYOUTS = [
 	"two-column",
 	"quote",
 	"stats",
+	"timeline",
+	"section",
+	"image-split",
 	"closing",
 ] as const;
 export const LayoutSchema = z.enum(LAYOUTS);
@@ -42,6 +53,7 @@ export const OutlineSchema = z.object({
 export type Outline = z.infer<typeof OutlineSchema>;
 
 const NotesSchema = z.string().default("");
+const KickerSchema = z.string().max(40).default("");
 
 const TitleSlideSchema = z.object({
 	layout: z.literal("title"),
@@ -52,6 +64,7 @@ const TitleSlideSchema = z.object({
 
 const BulletsSlideSchema = z.object({
 	layout: z.literal("bullets"),
+	kicker: KickerSchema,
 	title: z.string().min(1),
 	bullets: z.array(z.string().min(1)).min(1).max(7),
 	notes: NotesSchema,
@@ -59,6 +72,7 @@ const BulletsSlideSchema = z.object({
 
 const TwoColumnSlideSchema = z.object({
 	layout: z.literal("two-column"),
+	kicker: KickerSchema,
 	title: z.string().min(1),
 	left: z.object({
 		heading: z.string().min(1),
@@ -81,6 +95,7 @@ const QuoteSlideSchema = z.object({
 
 const StatsSlideSchema = z.object({
 	layout: z.literal("stats"),
+	kicker: KickerSchema,
 	title: z.string().min(1),
 	stats: z
 		.array(
@@ -91,6 +106,39 @@ const StatsSlideSchema = z.object({
 		)
 		.min(2)
 		.max(4),
+	notes: NotesSchema,
+});
+
+const TimelineSlideSchema = z.object({
+	layout: z.literal("timeline"),
+	kicker: KickerSchema,
+	title: z.string().min(1),
+	steps: z
+		.array(
+			z.object({
+				title: z.string().min(1),
+				description: z.string().default(""),
+			}),
+		)
+		.min(3)
+		.max(5),
+	notes: NotesSchema,
+});
+
+const SectionSlideSchema = z.object({
+	layout: z.literal("section"),
+	kicker: KickerSchema,
+	title: z.string().min(1),
+	subtitle: z.string().default(""),
+	notes: NotesSchema,
+});
+
+const ImageSplitSlideSchema = z.object({
+	layout: z.literal("image-split"),
+	kicker: KickerSchema,
+	title: z.string().min(1),
+	bullets: z.array(z.string().min(1)).min(2).max(5),
+	caption: z.string().default(""),
 	notes: NotesSchema,
 });
 
@@ -108,6 +156,9 @@ export const SlideSchema = z.discriminatedUnion("layout", [
 	TwoColumnSlideSchema,
 	QuoteSlideSchema,
 	StatsSlideSchema,
+	TimelineSlideSchema,
+	SectionSlideSchema,
+	ImageSplitSlideSchema,
 	ClosingSlideSchema,
 ]);
 export type Slide = z.infer<typeof SlideSchema>;
@@ -139,6 +190,7 @@ export type OutlineRequest = z.infer<typeof OutlineRequestSchema>;
 export const SlideRequestSchema = ProviderConfigSchema.extend({
 	outline: OutlineSchema,
 	index: z.coerce.number().int().min(0),
+	instruction: z.string().max(400).optional(),
 });
 export type SlideRequest = z.infer<typeof SlideRequestSchema>;
 

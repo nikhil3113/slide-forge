@@ -1,5 +1,5 @@
 import { SlideCard } from "./slide-card";
-import type { SlideState } from "@/hooks/use-deck-generation";
+import type { SlideState } from "@/hooks/use-deck-workspace";
 import type { ThemeId } from "@/types/deck";
 
 interface SlideGridProps {

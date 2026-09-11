@@ -12,7 +12,7 @@ The JSON must match this exact shape:
     {
       "title": "string - slide headline",
       "summary": "string - one sentence describing what this slide covers",
-      "layout": "title" | "bullets" | "two-column" | "quote" | "stats" | "closing"
+      "layout": "title" | "bullets" | "two-column" | "quote" | "stats" | "timeline" | "section" | "image-split" | "closing"
     }
   ]
 }
@@ -24,7 +24,11 @@ Layout rules:
 - "two-column": compares two ideas, options, or pros and cons.
 - "quote": a memorable quote or a bold one-liner.
 - "stats": quantitative highlights (2-4 numbers).
-- For decks longer than 6 slides, use at least three different layouts besides "title" and "closing".
+- "timeline": a process, roadmap, or sequence of 3-5 stages.
+- "section": a mid-deck chapter divider; use at most 1-2 of these, never adjacent to "title" or "closing".
+- "image-split": a concept slide that pairs 2-5 concise points with a strong visual panel.
+- For decks longer than 6 slides, use at least four different layouts besides "title" and "closing".
+- Match the layout to the content: use "timeline" only when the content really is sequential.
 - Slide titles are short, specific, and never repeat the deck title verbatim.
 - The "summary" guides a later model that writes the full slide, so describe the actual content, not generic filler.`;
 

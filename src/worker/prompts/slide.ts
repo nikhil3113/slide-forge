@@ -2,10 +2,13 @@ import type { Layout, SlideRequest } from "@/types/deck";
 
 export const SLIDE_SHAPES: Record<Layout, string> = {
 	title: `{ "layout": "title", "title": "string", "subtitle": "string", "notes": "string" }`,
-	bullets: `{ "layout": "bullets", "title": "string", "bullets": ["string", "..."], "notes": "string" }`,
-	"two-column": `{ "layout": "two-column", "title": "string", "left": { "heading": "string", "bullets": ["string", "..."] }, "right": { "heading": "string", "bullets": ["string", "..."] }, "notes": "string" }`,
+	bullets: `{ "layout": "bullets", "kicker": "string", "title": "string", "bullets": ["string", "..."], "notes": "string" }`,
+	"two-column": `{ "layout": "two-column", "kicker": "string", "title": "string", "left": { "heading": "string", "bullets": ["string", "..."] }, "right": { "heading": "string", "bullets": ["string", "..."] }, "notes": "string" }`,
 	quote: `{ "layout": "quote", "title": "string", "quote": "string", "attribution": "string", "notes": "string" }`,
-	stats: `{ "layout": "stats", "title": "string", "stats": [{ "value": "string", "label": "string" }], "notes": "string" }`,
+	stats: `{ "layout": "stats", "kicker": "string", "title": "string", "stats": [{ "value": "string", "label": "string" }], "notes": "string" }`,
+	timeline: `{ "layout": "timeline", "kicker": "string", "title": "string", "steps": [{ "title": "string", "description": "string" }], "notes": "string" }`,
+	section: `{ "layout": "section", "kicker": "string", "title": "string", "subtitle": "string", "notes": "string" }`,
+	"image-split": `{ "layout": "image-split", "kicker": "string", "title": "string", "bullets": ["string", "..."], "caption": "string", "notes": "string" }`,
 	closing: `{ "layout": "closing", "title": "string", "subtitle": "string", "cta": "string", "notes": "string" }`,
 };
 
@@ -14,7 +17,12 @@ You always respond with one valid JSON object and nothing else: no markdown fenc
 
 Content rules:
 - Bullets are short phrases (max 12 words), parallel in structure, and information-dense.
+- "kicker" is a 1-3 word category label in title case (e.g. "Market Context", "Key Numbers", "Roadmap"); it is shown as a small eyebrow above the title. Never leave it as filler like "Slide" or "Overview".
 - "notes" are speaker notes and are required: 2-4 conversational sentences (about 40-90 words) that add context, examples, or transitions the presenter can say out loud. Never repeat the slide text verbatim and never leave notes empty.
+- When revision notes are provided, apply them precisely and keep everything else consistent with the original request.
+- "timeline" slides must have 3-5 steps, each with a short title and a one-sentence description.
+- "image-split" slides pair 2-5 concise bullets with a short "caption" (2-5 words) that labels the visual panel.
+- "section" slides are chapter dividers: a short punchy title and one supporting sentence.
 - Match the requested layout exactly and follow its JSON shape.
 - Never invent a different layout field value.`;
 
@@ -48,8 +56,15 @@ export function buildSlidePrompt(request: SlideRequest): {
 		`Requested layout: "${target.layout}"`,
 		"",
 		`Required JSON shape for this layout: ${SLIDE_SHAPES[target.layout]}`,
-		"Respond with the JSON object only.",
 	];
+
+	if (request.instruction) {
+		lines.push(
+			`Revision notes from the user (apply them precisely, keep everything else consistent): ${request.instruction}`,
+		);
+	}
+
+	lines.push("Respond with the JSON object only.");
 
 	return {
 		system: SYSTEM_PROMPT,
