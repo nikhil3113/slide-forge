@@ -128,6 +128,23 @@ function App() {
 		workspace.phase === "outlining" ||
 		workspace.phase === "style-guide" ||
 		workspace.phase === "slides";
+	const [clock, setClock] = useState(() => Date.now());
+
+	useEffect(() => {
+		if (!busy) return;
+		const timer = window.setInterval(() => setClock(Date.now()), 1000);
+		return () => window.clearInterval(timer);
+	}, [busy]);
+
+	const elapsedSeconds = busy
+		? Math.max(0, Math.floor((clock - workspace.phaseStartedAt) / 1000))
+		: 0;
+	const elapsedLabel =
+		elapsedSeconds >= 60
+			? `${Math.floor(elapsedSeconds / 60)}m ${String(elapsedSeconds % 60).padStart(2, "0")}s`
+			: `${elapsedSeconds}s`;
+	const slowHint =
+		elapsedSeconds >= 20 ? " · model is thinking, this can take a minute" : "";
 	const snapshot = takeSnapshot();
 	const tokensCss = useMemo(
 		() =>
@@ -174,14 +191,14 @@ function App() {
 
 	const statusText =
 		workspace.phase === "outlining"
-			? `Planning the outline… (${workspace.outlineChars} chars)`
+			? `Planning the outline… (${workspace.outlineChars} chars, ${elapsedLabel})${slowHint}`
 			: workspace.phase === "style-guide"
-				? "Defining the deck design system…"
+				? `Defining the deck design system… ${elapsedLabel}${slowHint}`
 				: workspace.phase === "slides"
 					? `Designing slide ${Math.min(
 							(workspace.activeSlide ?? workspace.progress.done) + 1,
 							workspace.progress.total,
-						)} of ${workspace.progress.total}…`
+						)} of ${workspace.progress.total}… ${elapsedLabel}${slowHint}`
 					: workspace.phase === "error"
 						? (workspace.error?.message ?? "Something went wrong.")
 						: undefined;

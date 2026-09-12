@@ -112,7 +112,7 @@ app.post("/slide-html", async (c) => {
 					system,
 					user,
 					temperature: 0.65,
-					maxTokens: 6000,
+					maxTokens: 8000,
 					signal: controller.signal,
 					headers: sessionHeaders,
 				}),
@@ -121,7 +121,15 @@ app.post("/slide-html", async (c) => {
 
 			const extracted = extractSlideNotes(stripCodeFences(raw));
 			const cleaned = sanitizeSlideHtml(extracted.html);
-			validateSlideHtml(cleaned);
+			try {
+				validateSlideHtml(cleaned);
+			} catch (error) {
+				console.warn(
+					"[slide-html] rejected output:",
+					cleaned.slice(0, 240).replace(/\s+/g, " "),
+				);
+				throw error;
+			}
 
 			await stream.writeSSE({
 				event: "result",

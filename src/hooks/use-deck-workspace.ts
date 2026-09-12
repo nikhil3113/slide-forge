@@ -67,6 +67,7 @@ function toStreamError(error: unknown): StreamError {
 
 export function useDeckWorkspace(settings: ProviderSettings) {
 	const [phase, setPhase] = useState<WorkspacePhase>("idle");
+	const [phaseStartedAt, setPhaseStartedAt] = useState(() => Date.now());
 	const [title, setTitle] = useState("");
 	const [subtitle, setSubtitle] = useState("");
 	const [theme, setTheme] = useState<ThemeId>(DEFAULT_THEME_ID);
@@ -79,6 +80,11 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 
 	const controllerRef = useRef<AbortController | null>(null);
 	const settingsRef = useRef(settings);
+
+	const transitionPhase = useCallback((next: WorkspacePhase) => {
+		setPhaseStartedAt(Date.now());
+		setPhase(next);
+	}, []);
 
 	useEffect(() => {
 		settingsRef.current = settings;
@@ -179,7 +185,7 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 	const reset = useCallback(() => {
 		controllerRef.current?.abort();
 		controllerRef.current = null;
-		setPhase("idle");
+		transitionPhase("idle");
 		setTitle("");
 		setSubtitle("");
 		setTheme(DEFAULT_THEME_ID);
@@ -189,7 +195,7 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 		setOutlineChars(0);
 		setError(undefined);
 		setActiveSlide(undefined);
-	}, []);
+	}, [transitionPhase]);
 
 	const startDeck = useCallback(
 		async (input: DeckStartInput) => {
@@ -197,7 +203,7 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 			const controller = new AbortController();
 			controllerRef.current = controller;
 
-			setPhase("outlining");
+			transitionPhase("outlining");
 			setError(undefined);
 			setOutline(undefined);
 			setStyleGuide(undefined);
@@ -227,7 +233,7 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 				setSubtitle(outlineValue.subtitle);
 				setTheme(outlineValue.theme);
 				setOutline(outlineValue);
-				setPhase("style-guide");
+				transitionPhase("style-guide");
 
 				const guide = await generateStyleGuide(outlineValue, settingsRef.current, {
 					signal: controller.signal,
@@ -242,7 +248,7 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 						partialHtml: "",
 					})),
 				);
-				setPhase("slides");
+				transitionPhase("slides");
 
 				await runQueue(
 					outlineValue,
@@ -252,18 +258,18 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 				);
 
 				if (!controller.signal.aborted) {
-					setPhase("ready");
+					transitionPhase("ready");
 				}
 			} catch (caught) {
 				if (controller.signal.aborted) {
-					setPhase("idle");
+					transitionPhase("idle");
 					return;
 				}
 				setError(toStreamError(caught));
-				setPhase("error");
+				transitionPhase("error");
 			}
 		},
-		[runQueue, theme],
+		[runQueue, theme, transitionPhase],
 	);
 
 	const ensureStyleGuide = useCallback(
@@ -282,7 +288,7 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 			.filter((slide) => slide.status !== "done")
 			.map((slide) => slide.index);
 		if (pending.length === 0) {
-			setPhase("ready");
+			transitionPhase("ready");
 			return;
 		}
 
@@ -291,16 +297,16 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 
 		try {
 			const guide = await ensureStyleGuide(outline);
-			setPhase("slides");
+			transitionPhase("slides");
 			await runQueue(outline, guide, pending, controller);
-			if (!controller.signal.aborted) setPhase("ready");
+			if (!controller.signal.aborted) transitionPhase("ready");
 		} catch (caught) {
 			if (!controller.signal.aborted) {
 				setError(toStreamError(caught));
-				setPhase("error");
+				transitionPhase("error");
 			}
 		}
-	}, [ensureStyleGuide, outline, runQueue, slideStates]);
+	}, [ensureStyleGuide, outline, runQueue, slideStates, transitionPhase]);
 
 	const retrySlide = useCallback(
 		async (index: number) => {
@@ -370,10 +376,10 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 				await runSlideWith(nextOutline, guide, position, controller);
 			} catch (caught) {
 				setError(toStreamError(caught));
-				setPhase("error");
+				transitionPhase("error");
 			}
 		},
-		[ensureStyleGuide, outline, runSlideWith],
+		[ensureStyleGuide, outline, runSlideWith, transitionPhase],
 	);
 
 	const removeSlide = useCallback(
@@ -397,15 +403,15 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 	const cancel = useCallback(() => {
 		controllerRef.current?.abort();
 		controllerRef.current = null;
-		setPhase((current) =>
-			current === "outlining" || current === "style-guide" || current === "slides"
-				? slideStates.some((slide) => slide.html)
-					? "ready"
-					: "idle"
-				: current,
-		);
+		if (
+			phase === "outlining" ||
+			phase === "style-guide" ||
+			phase === "slides"
+		) {
+			transitionPhase(slideStates.some((slide) => slide.html) ? "ready" : "idle");
+		}
 		setActiveSlide(undefined);
-	}, [slideStates]);
+	}, [phase, slideStates, transitionPhase]);
 
 	const updateDeck = useCallback((update: { title?: string; subtitle?: string }) => {
 		if (update.title) {
@@ -434,7 +440,7 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 		setError(undefined);
 
 		if (!deck || !deck.outline) {
-			setPhase("idle");
+			transitionPhase("idle");
 			setTitle(deck?.title ?? "");
 			setSubtitle(deck?.subtitle ?? "");
 			setTheme(deck?.theme ?? DEFAULT_THEME_ID);
@@ -472,8 +478,8 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 						};
 			}),
 		);
-		setPhase("ready");
-	}, []);
+		transitionPhase("ready");
+	}, [transitionPhase]);
 
 	const snapshot = useCallback((): WorkspaceSnapshot => {
 		return {
@@ -510,6 +516,7 @@ export function useDeckWorkspace(settings: ProviderSettings) {
 
 	return {
 		phase,
+		phaseStartedAt,
 		title,
 		subtitle,
 		theme,

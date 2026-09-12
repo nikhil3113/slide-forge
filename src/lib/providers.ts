@@ -38,7 +38,7 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
 		defaultModel: "deepseek-v4-flash",
 		keyPlaceholder: "opencode-go API key",
 		requiresSession: true,
-		note: "Go is billed through your OpenCode subscription.",
+		note: "Go is billed through your OpenCode subscription. Reasoning-heavy models (deepseek-v4-flash) can take ~2-3 min per slide; glm-5.3-flash is several times faster.",
 	},
 	{
 		id: "opencode-zen",

@@ -135,7 +135,14 @@ function extractDocumentParts(html: string): { styles: string; body: string } {
 		const styles = [...doc.querySelectorAll("style")]
 			.map((node) => node.textContent ?? "")
 			.join("\n");
-		const body = doc.body ? doc.body.innerHTML : html;
+		let body = doc.body ? doc.body.innerHTML : html;
+
+		const hasRoot =
+			doc.querySelector(".slide, [id='slide'], [data-slide-root]") !== null;
+		if (!hasRoot && body.trim().length > 0) {
+			body = `<section class="slide">${body}</section>`;
+		}
+
 		return { styles, body };
 	} catch {
 		return { styles: "", body: html };

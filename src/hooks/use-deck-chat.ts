@@ -67,6 +67,15 @@ function buildDeckSummary(workspace: DeckWorkspace) {
 function cleanFallbackText(raw: string): string {
 	const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
 	const text = (fenced?.[1] ?? raw).trim();
+
+	const parsed = tryParsePartial(text);
+	const reply = parsed && typeof parsed.reply === "string" ? parsed.reply.trim() : "";
+	if (reply.length > 0) return reply;
+
+	if (text.startsWith("{") || text.startsWith("[")) {
+		return "I could not turn that into an action. Try rephrasing your request.";
+	}
+
 	return text.length > 0 ? text.slice(0, 1200) : "I could not process that.";
 }
 

@@ -1,6 +1,6 @@
 import type { ProviderId } from "@/types/deck";
 import type { Provider, StreamChatOptions } from "./types";
-import { providerHttpError, requireBody } from "./types";
+import { ProviderError, providerHttpError, requireBody } from "./types";
 import { parseSSE } from "@/worker/utils/sse-parse";
 
 function normalizeBaseUrl(baseUrl: string): string {
@@ -42,8 +42,11 @@ export function createOpenAICompatProvider(
 
 			const body = requireBody(response, "Chat completions");
 
+			let contentSeen = false;
+			let reasoningSeen = false;
+
 			for await (const chunk of parseSSE(body)) {
-				if (chunk.data === "[DONE]") return;
+				if (chunk.data === "[DONE]") break;
 
 				let parsed: unknown;
 				try {
@@ -52,13 +55,30 @@ export function createOpenAICompatProvider(
 					continue;
 				}
 
-				const delta = (
-					parsed as { choices?: Array<{ delta?: { content?: unknown } }> }
-				).choices?.[0]?.delta?.content;
+				const choice = (
+					parsed as {
+						choices?: Array<{
+							delta?: { content?: unknown; reasoning_content?: unknown };
+						}>;
+					}
+				).choices?.[0];
 
+				const reasoning = choice?.delta?.reasoning_content;
+				if (typeof reasoning === "string" && reasoning.length > 0) {
+					reasoningSeen = true;
+				}
+
+				const delta = choice?.delta?.content;
 				if (typeof delta === "string" && delta.length > 0) {
+					contentSeen = true;
 					yield delta;
 				}
+			}
+
+			if (!contentSeen && reasoningSeen) {
+				throw new ProviderError(
+					"The model spent its whole output budget on internal reasoning and produced no content. Retry, or switch to a faster model like glm-5.3-flash.",
+				);
 			}
 		},
 	};
