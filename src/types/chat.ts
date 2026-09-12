@@ -10,7 +10,11 @@ export const ChatActionSchema = z.discriminatedUnion("type", [
 	z.object({
 		type: z.literal("create-outline"),
 		topic: z.string().min(1).max(400),
-		slideCount: z.coerce.number().int().min(3).max(20).optional(),
+		slideCount: z.coerce
+			.number()
+			.int()
+			.transform((value) => Math.min(20, Math.max(3, value)))
+			.optional(),
 		theme: ThemeIdSchema.optional(),
 		audience: z.string().max(200).optional(),
 		tone: z.string().max(200).optional(),
@@ -23,7 +27,10 @@ export const ChatActionSchema = z.discriminatedUnion("type", [
 	}),
 	z.object({
 		type: z.literal("add-slide"),
-		afterSlideNumber: z.coerce.number().int().min(0).max(50),
+		afterSlideNumber: z.coerce
+			.number()
+			.int()
+			.transform((value) => Math.min(50, Math.max(0, value))),
 		title: z.string().min(1).max(120),
 		summary: z.string().min(1).max(400),
 		layout: LayoutSchema.optional(),

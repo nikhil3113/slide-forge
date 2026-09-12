@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PresentationIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ChatPanel } from "@/components/app/chat-panel";
@@ -33,7 +33,8 @@ import {
 	saveSettings,
 	type ProviderSettings,
 } from "@/lib/providers";
-import { DEFAULT_THEME_ID } from "@/lib/themes";
+import { slideTokensCss } from "@/lib/slide-tokens";
+import { DEFAULT_THEME_ID, getTheme } from "@/lib/themes";
 
 function App() {
 	const [settings, setSettings] = useState<ProviderSettings>(() =>
@@ -123,8 +124,37 @@ function App() {
 		takeSnapshot,
 	]);
 
-	const busy = workspace.phase === "outlining" || workspace.phase === "slides";
+	const busy =
+		workspace.phase === "outlining" ||
+		workspace.phase === "style-guide" ||
+		workspace.phase === "slides";
+	const [clock, setClock] = useState(() => Date.now());
+
+	useEffect(() => {
+		if (!busy) return;
+		const timer = window.setInterval(() => setClock(Date.now()), 1000);
+		return () => window.clearInterval(timer);
+	}, [busy]);
+
+	const elapsedSeconds = busy
+		? Math.max(0, Math.floor((clock - workspace.phaseStartedAt) / 1000))
+		: 0;
+	const elapsedLabel =
+		elapsedSeconds >= 60
+			? `${Math.floor(elapsedSeconds / 60)}m ${String(elapsedSeconds % 60).padStart(2, "0")}s`
+			: `${elapsedSeconds}s`;
+	const slowHint =
+		elapsedSeconds >= 20 ? " · model is thinking, this can take a minute" : "";
 	const snapshot = takeSnapshot();
+	const tokensCss = useMemo(
+		() =>
+			slideTokensCss(
+				getTheme(workspace.theme),
+				workspace.title || workspace.outline?.title || "SlideForge deck",
+			),
+		[workspace.theme, workspace.title, workspace.outline?.title],
+	);
+	const slideBackground = `#${getTheme(workspace.theme).background}`;
 	const maxIndex = Math.max(workspace.slideStates.length - 1, 0);
 	const effectiveIndex = Math.min(
 		workspace.activeSlide ?? focusIndex,
@@ -161,15 +191,17 @@ function App() {
 
 	const statusText =
 		workspace.phase === "outlining"
-			? `Planning the outline… (${workspace.outlineChars} chars)`
-			: workspace.phase === "slides"
-				? `Writing slide ${Math.min(
-						(workspace.activeSlide ?? workspace.progress.done) + 1,
-						workspace.progress.total,
-					)} of ${workspace.progress.total}…`
-				: workspace.phase === "error"
-					? (workspace.error?.message ?? "Something went wrong.")
-					: undefined;
+			? `Planning the outline… (${workspace.outlineChars} chars, ${elapsedLabel})${slowHint}`
+			: workspace.phase === "style-guide"
+				? `Defining the deck design system… ${elapsedLabel}${slowHint}`
+				: workspace.phase === "slides"
+					? `Designing slide ${Math.min(
+							(workspace.activeSlide ?? workspace.progress.done) + 1,
+							workspace.progress.total,
+						)} of ${workspace.progress.total}… ${elapsedLabel}${slowHint}`
+					: workspace.phase === "error"
+						? (workspace.error?.message ?? "Something went wrong.")
+						: undefined;
 
 	return (
 		<TooltipProvider>
@@ -191,6 +223,7 @@ function App() {
 					<section className="flex min-h-0 min-w-0 flex-1 flex-col">
 						<WorkspaceToolbar
 							snapshot={snapshot}
+							tokensCss={tokensCss}
 							progress={workspace.progress}
 							phase={workspace.phase}
 							grid={grid}
@@ -218,13 +251,14 @@ function App() {
 							) : grid ? (
 								<SlideGrid
 									slides={workspace.slideStates}
-									themeId={workspace.theme}
+									tokensCss={tokensCss}
+									backgroundColor={slideBackground}
 									onRetry={(index) => void workspace.retrySlide(index)}
 								/>
 							) : (
 								<SlideStage
 									state={currentState}
-									themeId={workspace.theme}
+									tokensCss={tokensCss}
 									index={effectiveIndex}
 									total={workspace.slideStates.length}
 									onPrev={() =>

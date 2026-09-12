@@ -1,21 +1,27 @@
 import { SlideCard } from "./slide-card";
-import type { SlideState } from "@/hooks/use-deck-workspace";
-import type { ThemeId } from "@/types/deck";
+import type { HtmlSlideState } from "@/hooks/use-deck-workspace";
 
 interface SlideGridProps {
-	slides: SlideState[];
-	themeId: ThemeId;
+	slides: HtmlSlideState[];
+	tokensCss: string;
+	backgroundColor: string;
 	onRetry: (index: number) => void;
 }
 
-export function SlideGrid({ slides, themeId, onRetry }: SlideGridProps) {
+export function SlideGrid({
+	slides,
+	tokensCss,
+	backgroundColor,
+	onRetry,
+}: SlideGridProps) {
 	return (
 		<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
 			{slides.map((slide) => (
 				<SlideCard
 					key={slide.index}
 					state={slide}
-					themeId={themeId}
+					tokensCss={tokensCss}
+					backgroundColor={backgroundColor}
 					onRetry={onRetry}
 				/>
 			))}

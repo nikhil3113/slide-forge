@@ -3,16 +3,18 @@ import { DownloadIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { downloadDeck } from "@/lib/build-deck";
+import { downloadDeck } from "@/lib/export-pptx";
+import { getTheme } from "@/lib/themes";
 import type { WorkspaceSnapshot } from "@/hooks/use-deck-workspace";
-import type { Deck } from "@/types/deck";
 
 interface DownloadButtonProps {
 	snapshot: WorkspaceSnapshot;
+	tokensCss: string;
 }
 
-export function DownloadButton({ snapshot }: DownloadButtonProps) {
+export function DownloadButton({ snapshot, tokensCss }: DownloadButtonProps) {
 	const [building, setBuilding] = useState(false);
+	const [progress, setProgress] = useState<{ done: number; total: number }>();
 
 	const ready =
 		!!snapshot.outline &&
@@ -23,15 +25,19 @@ export function DownloadButton({ snapshot }: DownloadButtonProps) {
 		if (!ready || building) return;
 		setBuilding(true);
 		try {
-			const deck: Deck = {
-				title: snapshot.title || snapshot.outline?.title || "SlideForge deck",
-				subtitle: snapshot.subtitle,
-				theme: snapshot.theme,
-				slides: snapshot.slides
-					.sort((a, b) => a.index - b.index)
-					.map((entry) => entry.slide),
-			};
-			const fileName = await downloadDeck(deck);
+			const theme = getTheme(snapshot.theme);
+			const fileName = await downloadDeck(
+				{
+					title: snapshot.title || snapshot.outline?.title || "SlideForge deck",
+					subtitle: snapshot.subtitle,
+					tokensCss,
+					backgroundColor: `#${theme.background}`,
+					slides: [...snapshot.slides]
+						.sort((a, b) => a.index - b.index)
+						.map((entry) => ({ html: entry.html, notes: entry.notes })),
+				},
+				(done, total) => setProgress({ done, total }),
+			);
 			toast.success("PowerPoint downloaded", { description: fileName });
 		} catch (error) {
 			toast.error("Could not build the PowerPoint file", {
@@ -40,6 +46,7 @@ export function DownloadButton({ snapshot }: DownloadButtonProps) {
 			});
 		} finally {
 			setBuilding(false);
+			setProgress(undefined);
 		}
 	};
 
@@ -51,7 +58,11 @@ export function DownloadButton({ snapshot }: DownloadButtonProps) {
 			title={ready ? "Download .pptx" : "Generate all slides first"}
 		>
 			{building ? <Spinner /> : <DownloadIcon />}
-			{building ? "Building…" : "Download"}
+			{building
+				? progress
+					? `Rendering ${progress.done}/${progress.total}`
+					: "Rendering…"
+				: "Download"}
 		</Button>
 	);
 }
