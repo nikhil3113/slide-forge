@@ -16,6 +16,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
+import {
+	FAQ_ENTRIES,
+	HOW_TO_STEPS,
+	faqJsonLd,
+	howToJsonLd,
+} from "@/lib/seo";
 import { DECK_THEMES, toCssColor } from "@/lib/themes";
 
 interface HomePageProps {
@@ -70,19 +76,11 @@ const FEATURES: Feature[] = [
 	},
 ];
 
-const STEPS = [
-	{
-		title: "Describe it",
-		body: "Type a one-line brief, then set slide count, theme and tone — or leave it to SlideForge.",
-	},
-	{
-		title: "Watch it stream",
-		body: "The outline lands first, then a design system, then each slide renders live as it is written.",
-	},
-	{
-		title: "Refine and export",
-		body: "Chat your way to the final deck, then download an editable PowerPoint file.",
-	},
+const STATS = [
+	{ value: "3–20", label: "slides per deck" },
+	{ value: "7", label: "curated themes" },
+	{ value: "5", label: "AI providers supported" },
+	{ value: "100%", label: "keys kept in your browser" },
 ];
 
 const PROVIDERS = ["OpenAI", "Anthropic", "Google Gemini", "Groq", "OpenCode"];
@@ -230,6 +228,14 @@ export function HomePage({ onStart, onOpenSettings }: HomePageProps) {
 
 	return (
 		<div className="min-h-svh overflow-y-auto bg-background">
+			{/* Structured data for search + answer engines. Same source as the copy below. */}
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify([faqJsonLd(), howToJsonLd()]),
+				}}
+			/>
+
 			{/* Nav */}
 			<header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
 				<div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
@@ -260,6 +266,12 @@ export function HomePage({ onStart, onOpenSettings }: HomePageProps) {
 							className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 						>
 							Themes
+						</a>
+						<a
+							href="#faq"
+							className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+						>
+							FAQ
 						</a>
 					</nav>
 
@@ -362,6 +374,40 @@ export function HomePage({ onStart, onOpenSettings }: HomePageProps) {
 				</div>
 			</section>
 
+			{/* Definition + stats — a clean, quotable summary for answer engines */}
+			<section className="border-t border-border/60">
+				<div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+					<div className="mx-auto max-w-3xl text-center">
+						<h2 className="font-heading text-xl font-semibold tracking-tight text-balance sm:text-2xl">
+							What is SlideForge?
+						</h2>
+						<p className="mt-3 text-sm/relaxed text-muted-foreground text-balance">
+							SlideForge is an AI slide deck generator that turns a short text
+							prompt into a complete, on-brand PowerPoint presentation. It
+							writes the outline, applies one of seven curated themes, streams
+							each slide as it is created, and exports an editable .pptx file —
+							no account required.
+						</p>
+					</div>
+
+					<div className="mx-auto mt-10 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
+						{STATS.map((stat) => (
+							<div
+								key={stat.label}
+								className="rounded-2xl border border-border bg-card px-4 py-5 text-center"
+							>
+								<div className="font-heading text-2xl font-semibold tracking-tight text-primary">
+									{stat.value}
+								</div>
+								<div className="mt-1 text-xs text-muted-foreground">
+									{stat.label}
+								</div>
+							</div>
+						))}
+					</div>
+				</div>
+			</section>
+
 			{/* Features */}
 			<section id="features" className="border-t border-border/60 bg-muted/20">
 				<div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
@@ -401,7 +447,7 @@ export function HomePage({ onStart, onOpenSettings }: HomePageProps) {
 					/>
 
 					<div className="mt-12 grid gap-4 md:grid-cols-3">
-						{STEPS.map((step, index) => (
+						{HOW_TO_STEPS.map((step, index) => (
 							<div
 								key={step.title}
 								className="relative rounded-2xl border border-border bg-card p-6"
@@ -466,6 +512,30 @@ export function HomePage({ onStart, onOpenSettings }: HomePageProps) {
 				</div>
 			</section>
 
+			{/* FAQ — written for answer engines, useful for people too */}
+			<section id="faq" className="border-t border-border/60">
+				<div className="mx-auto w-full max-w-3xl px-4 py-20 sm:px-6">
+					<SectionHeading
+						eyebrow="FAQ"
+						title="Frequently asked questions"
+						body="Short answers about what SlideForge is, what it costs, and how it handles your data."
+					/>
+
+					<dl className="mt-12 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+						{FAQ_ENTRIES.map((entry) => (
+							<div key={entry.question} className="p-5 sm:p-6">
+								<dt className="font-heading text-sm font-semibold">
+									{entry.question}
+								</dt>
+								<dd className="mt-2 text-sm/relaxed text-muted-foreground">
+									{entry.answer}
+								</dd>
+							</div>
+						))}
+					</dl>
+				</div>
+			</section>
+
 			{/* CTA */}
 			<section className="border-t border-border/60">
 				<div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
@@ -525,6 +595,9 @@ export function HomePage({ onStart, onOpenSettings }: HomePageProps) {
 						</a>
 						<a href="#themes" className="hover:text-foreground">
 							Themes
+						</a>
+						<a href="#faq" className="hover:text-foreground">
+							FAQ
 						</a>
 						<button
 							type="button"
