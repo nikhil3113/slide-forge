@@ -38,12 +38,13 @@
 	},
 	"private": true,
 	"scripts": {
-		"build": "tsc -b && vite build",
+		"build": "tsc -b && vite build && bun run prerender",
 		"cf-typegen": "wrangler types",
-		"check": "tsc && vite build && wrangler deploy --dry-run",
+		"check": "tsc && vite build && bun run prerender && wrangler deploy --dry-run",
 		"deploy": "wrangler deploy",
 		"dev": "vite",
 		"lint": "eslint .",
+		"prerender": "bun scripts/prerender.tsx",
 		"preview": "bun run build && vite preview",
 		"smoke": "bun run scripts/smoke.ts",
 		"typecheck": "tsc -b"

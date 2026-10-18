@@ -13,7 +13,7 @@ interface HeaderProps {
 }
 
 export function Header({ onOpenSettings, onHome }: HeaderProps) {
-	const { isDark, toggleTheme } = useTheme();
+	const { toggleTheme } = useTheme();
 
 	return (
 		<header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
@@ -44,10 +44,11 @@ export function Header({ onOpenSettings, onHome }: HeaderProps) {
 								/>
 							}
 						>
-							{isDark ? <SunIcon /> : <MoonIcon />}
+							<SunIcon className="hidden dark:block" />
+							<MoonIcon className="block dark:hidden" />
 						</TooltipTrigger>
 						<TooltipContent>
-							{isDark ? "Switch to light mode" : "Switch to dark mode"}
+							Toggle theme
 						</TooltipContent>
 					</Tooltip>
 					<Button variant="outline" size="sm" onClick={onOpenSettings}>

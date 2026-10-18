@@ -218,7 +218,7 @@ function DeckPreview() {
 }
 
 export function HomePage({ onStart, onOpenSettings }: HomePageProps) {
-	const { isDark, toggleTheme } = useTheme();
+	const { toggleTheme } = useTheme();
 	const [prompt, setPrompt] = useState("");
 
 	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -282,7 +282,8 @@ export function HomePage({ onStart, onOpenSettings }: HomePageProps) {
 							onClick={toggleTheme}
 							aria-label="Toggle theme"
 						>
-							{isDark ? <SunIcon /> : <MoonIcon />}
+							<SunIcon className="hidden dark:block" />
+							<MoonIcon className="block dark:hidden" />
 						</Button>
 						<Button
 							variant="outline"
