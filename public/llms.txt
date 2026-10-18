@@ -1,0 +1,30 @@
+# SlideForge
+
+> SlideForge is a free, browser-based AI slide deck generator. Describe a presentation in one sentence and it writes the outline, applies a theme, streams each slide as it is generated, and exports an editable PowerPoint (.pptx) file.
+
+SlideForge runs on Cloudflare Workers. It is bring-your-own-key: you supply an API key for a supported model provider, the key stays in your browser, and the generated deck is yours to edit and download. There is no account and no sign-up.
+
+## Key facts
+
+- Category: AI presentation generator / slide deck generator
+- Output: editable .pptx (opens in Microsoft PowerPoint, Google Slides, Keynote)
+- Deck length: 3–20 slides
+- Themes: Midnight, Paper, Ocean, Sunset, Forest, Nebula, Linen (7)
+- Supported providers: OpenAI, Anthropic (Claude), Google Gemini, Groq, OpenCode, plus any OpenAI-compatible endpoint
+- Pricing: the app is free; you pay only your chosen model provider for tokens
+- Accounts: none — API keys are stored in the browser, never on the server
+- Platform: Cloudflare Workers (edge), React front end
+
+## How it works
+
+1. Describe the deck — type a one-line brief; optionally set slide count, theme and tone.
+2. Watch it stream — the outline and design system are generated first, then each slide renders live as it is written.
+3. Refine and export — chat to edit any slide, then download an editable PowerPoint file.
+
+## Links
+
+- [Home](https://slide-forge.nikchavan.dev/): product overview and live demo
+
+## Contact
+
+- Website: https://slide-forge.nikchavan.dev/

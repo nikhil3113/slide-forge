@@ -3,6 +3,7 @@ import { PresentationIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ChatPanel } from "@/components/app/chat-panel";
 import { Header } from "@/components/app/header";
+import { HomePage } from "@/components/app/home-page";
 import { OutlineRail } from "@/components/app/outline-rail";
 import { ProviderSettingsDialog } from "@/components/app/provider-settings-dialog";
 import { SlideGrid } from "@/components/app/slide-grid";
@@ -37,6 +38,7 @@ import { slideTokensCss } from "@/lib/slide-tokens";
 import { DEFAULT_THEME_ID, getTheme } from "@/lib/themes";
 
 function App() {
+	const [view, setView] = useState<"home" | "workspace">("home");
 	const [settings, setSettings] = useState<ProviderSettings>(() =>
 		loadSettings(),
 	);
@@ -171,6 +173,14 @@ function App() {
 		void chat.sendMessage(text);
 	};
 
+	const handleStart = (prompt?: string) => {
+		const value = prompt?.trim();
+		setView("workspace");
+		if (value) {
+			handleSend(value);
+		}
+	};
+
 	const handleNewDeck = () => {
 		if (
 			workspace.slideStates.length > 0 &&
@@ -205,8 +215,17 @@ function App() {
 
 	return (
 		<TooltipProvider>
+			{view === "home" ? (
+				<HomePage
+					onStart={handleStart}
+					onOpenSettings={() => setSettingsOpen(true)}
+				/>
+			) : (
 			<div className="flex h-svh flex-col overflow-hidden bg-muted/20">
-				<Header onOpenSettings={() => setSettingsOpen(true)} />
+				<Header
+					onOpenSettings={() => setSettingsOpen(true)}
+					onHome={() => setView("home")}
+				/>
 
 				<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
 					{workspace.slideStates.length > 0 ? (
@@ -285,15 +304,16 @@ function App() {
 						/>
 					</aside>
 				</div>
-
-				<ProviderSettingsDialog
-					open={settingsOpen}
-					onOpenChange={setSettingsOpen}
-					settings={settings}
-					onChange={setSettings}
-				/>
-				<Toaster position="bottom-right" />
 			</div>
+			)}
+
+			<ProviderSettingsDialog
+				open={settingsOpen}
+				onOpenChange={setSettingsOpen}
+				settings={settings}
+				onChange={setSettings}
+			/>
+			<Toaster position="bottom-right" />
 		</TooltipProvider>
 	);
 }

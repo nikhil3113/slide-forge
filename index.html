@@ -2,13 +2,58 @@
 <html lang="en" class="dark">
 	<head>
 		<meta charset="UTF-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="color-scheme" content="dark light" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+		<title>SlideForge — AI Slide Deck Generator for PowerPoint</title>
 		<meta
 			name="description"
-			content="SlideForge - AI-powered slide deck generation with live streaming."
+			content="Turn a prompt into a designed slide deck. SlideForge streams slides in real time, then exports an editable PowerPoint file. Bring your own AI key — no sign-up."
 		/>
+		<link rel="canonical" href="https://slide-forge.nikchavan.dev/" />
+		<meta
+			name="robots"
+			content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+		/>
+		<meta name="color-scheme" content="dark light" />
+		<meta name="application-name" content="SlideForge" />
+		<meta name="author" content="SlideForge" />
+		<meta
+			name="theme-color"
+			media="(prefers-color-scheme: dark)"
+			content="#0c0a09"
+		/>
+		<meta
+			name="theme-color"
+			media="(prefers-color-scheme: light)"
+			content="#fafaf9"
+		/>
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="SlideForge" />
+		<meta property="og:url" content="https://slide-forge.nikchavan.dev/" />
+		<meta property="og:locale" content="en_US" />
+		<meta
+			property="og:title"
+			content="SlideForge — AI Slide Deck Generator for PowerPoint"
+		/>
+		<meta
+			property="og:description"
+			content="Describe a presentation in one sentence and SlideForge writes the outline, applies a theme, streams every slide, and exports an editable PowerPoint file."
+		/>
+
+		<!-- Twitter -->
+		<meta name="twitter:card" content="summary" />
+		<meta
+			name="twitter:title"
+			content="SlideForge — AI Slide Deck Generator for PowerPoint"
+		/>
+		<meta
+			name="twitter:description"
+			content="Describe a presentation in one sentence and SlideForge writes the outline, applies a theme, streams every slide, and exports an editable PowerPoint file."
+		/>
+
 		<script>
 			try {
 				if (localStorage.getItem("pptgen.theme") === "light") {
@@ -19,11 +64,63 @@
 				// ignore storage access errors
 			}
 		</script>
-		<title>SlideForge - AI Slide Deck Generator</title>
+
+		<!--
+			Structured data for crawlers and answer engines. Product-level facts only,
+			so this stays valid without JavaScript; FAQ and HowTo schema are rendered
+			with the page from src/lib/seo.ts.
+		-->
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@graph": [
+					{
+						"@type": "Organization",
+						"@id": "https://slide-forge.nikchavan.dev/#organization",
+						"name": "SlideForge",
+						"url": "https://slide-forge.nikchavan.dev/",
+						"logo": "https://slide-forge.nikchavan.dev/favicon.svg"
+					},
+					{
+						"@type": "WebSite",
+						"@id": "https://slide-forge.nikchavan.dev/#website",
+						"name": "SlideForge",
+						"url": "https://slide-forge.nikchavan.dev/",
+						"description": "AI slide deck generator that turns a text prompt into a designed, editable PowerPoint presentation.",
+						"publisher": {
+							"@id": "https://slide-forge.nikchavan.dev/#organization"
+						}
+					},
+					{
+						"@type": "SoftwareApplication",
+						"@id": "https://slide-forge.nikchavan.dev/#app",
+						"name": "SlideForge",
+						"url": "https://slide-forge.nikchavan.dev/",
+						"applicationCategory": "BusinessApplication",
+						"operatingSystem": "Web",
+						"description": "SlideForge turns a short text prompt into a complete slide deck: it writes the outline, applies a curated theme, streams each slide in real time, and exports an editable .pptx file.",
+						"featureList": [
+							"Prompt to slide deck generation",
+							"Live server-sent-events streaming",
+							"Chat-based slide editing",
+							"Seven curated deck themes",
+							"Editable .pptx export",
+							"Bring your own AI provider key"
+						],
+						"offers": {
+							"@type": "Offer",
+							"price": "0",
+							"priceCurrency": "USD"
+						}
+					}
+				]
+			}
+		</script>
 	</head>
 
 	<body>
-		<div id="root"></div>
+		<!-- The prerender step replaces this placeholder with the rendered homepage. -->
+		<div id="root"><!--app-html--></div>
 		<script type="module" src="/src/react-app/main.tsx"></script>
 	</body>
 </html>
