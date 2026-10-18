@@ -19,6 +19,26 @@ For all limits and quotas, retrieve from the product's `/platform/limits/` page.
 
 Run `wrangler types` after changing bindings in wrangler.jsonc.
 
+## This project (SlideForge)
+
+Package manager and build runtime is **Bun**. Prefer the package scripts over raw `wrangler` commands:
+
+| Command | Purpose |
+|---------|---------|
+| `bun run dev` | Local development (Vite dev server, client-side rendering only) |
+| `bun run build` | `tsc -b` → `vite build` → prerender the homepage into `dist/client/index.html` |
+| `bun run preview` | Build, then serve the build in the Workers runtime |
+| `bun run check` | Typecheck, build, prerender, then `wrangler deploy --dry-run` |
+| `bun run lint` / `bun run typecheck` | Lint / typecheck |
+| `bun run cf-typegen` | Regenerate `worker-configuration.d.ts` after changing bindings |
+| `bun run deploy` | Deploy — **does not build first**; run `bun run build` before it |
+
+Notes:
+
+- The marketing homepage is pre-rendered at build time by `scripts/prerender.tsx`. Keep the `<!--app-html-->` placeholder in `index.html`; the step exits with an error if it is missing.
+- The client hydrates that markup with `hydrateRoot`. Server and client render output must match, so do not add theme-, storage- or time-dependent markup to the homepage (the theme toggle swaps icons with CSS for this reason).
+- `vite dev` does not prerender by design. Verify rendered output with `bun run preview` or `wrangler dev` after a build.
+
 ## Node.js Compatibility
 
 https://developers.cloudflare.com/workers/runtime-apis/nodejs/
